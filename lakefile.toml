@@ -1,0 +1,16 @@
+name = "paper_proofs"
+version = "0.1.0"
+defaultTargets = ["PaperDefinitions", "PaperProofs"]
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
+rev = "fd891ee98c2a2188e2d19011d304e0db23a1759f"
+
+[[lean_lib]]
+name = "PaperDefinitions"
+roots = ["PaperDefinitions", "Merging", "Restriction", "Expansion", "Agreement", "ExchangeConstruction", "GraphDegrees", "BagCounting", "MergeDegrees", "TwinPartition", "TwinPreparation", "CriticalBags", "SparseNormalization", "LiftConstruction", "LiftContraction", "LiftFiberState", "LiftBreadthFirst", "CycleLiftForest", "HighGirthMerging", "HighGirthGeometry", "HighGirthCases", "HighGirthLargeBags", "HighGirthPairPair", "HighGirthCubicPairs", "HighGirthVertexBags", "LiftParity", "LiftWalks", "LiftHorizontal", "LiftCycleDecomposition", "LiftCycles", "LiftDeletedCycles", "RegularSeed", "LiftIteration", "SubcubicReductions"]
+
+[[lean_lib]]
+name = "PaperProofs"
+roots = ["PaperProofs", "Lemma12InducedMonotone", "Lemma13Exchange", "Lemma02CycleLift", "HighGirth", "HighGirthTheorems", "GirthExpander", "LiftImprovement", "RegularCorollaries", "RegularExistence", "Proposition14SparseBounds", "Corollary15CubicSparse", "Corollary16MinimalSubcubic"]

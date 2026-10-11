@@ -1,0 +1,346 @@
+% Paste this file after \appendix, or use \input{lean-statements-appendix.tex}.
+% Requires listings, xcolor, and AMS math symbols in the document preamble.
+% The repository preamble also loads sourcecodepro, as in the example paper.
+% The listings are signatures from the Lean sources, with proofs omitted.
+% They do not introduce new theorem numbers or duplicate main-text labels.
+\section{Lean Statements of the Numbered Results}
+\label{app:lean-statements}
+
+\begingroup
+\raggedbottom
+\lstdefinelanguage{PaperLean}{
+  keywords={theorem,lemma,def,structure,where,fun,by,exact,namespace,end,
+    open,import,variable,universe,section,Prop,Type},
+  sensitive=true,
+  comment=[l]{--},
+  morecomment=[s]{/-}{-/}
+}
+\lstset{language=PaperLean,
+  basicstyle=\ttfamily\small,keywordstyle=\bfseries,
+  columns=fullflexible,keepspaces=true,breaklines=true,
+  showstringspaces=false,frame=none,
+  backgroundcolor=\color{gray!8},
+  xleftmargin=6pt,framexleftmargin=6pt,
+  aboveskip=4pt,belowskip=4pt,
+  literate={ℕ}{{$\mathbb{N}$}}1 {ℤ}{{$\mathbb{Z}$}}1
+    {→}{{$\rightarrow$}}1 {∀}{{$\forall$}}1 {∃}{{$\exists$}}1
+    {≤}{{$\le$}}1 {≥}{{$\ge$}}1 {∧}{{$\wedge$}}1 {∨}{{$\vee$}}1
+    {¬}{{$\neg$}}1 {∈}{{$\in$}}1 {≠}{{$\ne$}}1
+    {⊆}{{$\subseteq$}}1 {∪}{{$\cup$}}1 {∑}{{$\sum$}}1
+    {×}{{$\times$}}1 {∞}{{$\infty$}}1 {₀}{{$_0$}}1
+}
+
+The following listings collect all sixteen numbered results and definitions
+in paper order. They give the declarations from the \texttt{Paper} namespace
+of the Lean development; theorem proofs are omitted. A result with two
+separate assertions is represented by two declarations where appropriate.
+The common context is:
+\begin{lstlisting}
+namespace Paper
+open Finset
+universe u
+variable {V : Type u} [DecidableEq V]
+variable {S U : Finset V}
+\end{lstlisting}
+
+Here \lstinline|S| is a finite vertex set, \lstinline|univ| is the whole
+vertex set of a finite type, \lstinline|Partition S| is a partition into
+nonempty bags, and \lstinline|.ofGraph G| regards a graph as a trigraph
+with no red edges. The parameters \lstinline|w| and \lstinline|s| bound
+red degree and total degree, respectively. The operations
+\lstinline|twinWidth| and \lstinline|sparseTwinWidth| are the corresponding
+minimum widths. The extended girth \lstinline|G.egirth| and extended
+distance \lstinline|G.edist| take values in \lstinline|ℕ∞|, allowing
+infinity. All supporting definitions are those of the Lean development.
+
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Theorem~\ref{thm:girth}.}
+\begin{lstlisting}
+theorem girth_cubic [Fintype V] [Nonempty V] (G : SimpleGraph V)
+    (hg : 9 < G.egirth) (hreg : Regular G univ 3) :
+    4 < twinWidth (.ofGraph G) univ
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Lemma~\ref{lemm:cycle-lift}.}
+The quotient cycle has \lstinline|n + 3| distinct bags, indexed cyclically
+by \lstinline|Fin (n + 3)|. The reachability hypothesis ensures that
+\lstinline|G.dist| is the length of a shortest path between the chosen
+endpoints.
+\begin{lstlisting}
+theorem cycle_lift_partition (G : SimpleGraph V)
+    {S : Finset V} (P : Partition S)
+    (n : ℕ) (A : Fin (n + 3) → Finset V)
+    (hA : ∀ i, A i ∈ P.parts) (hAi : Function.Injective A)
+    (a b : Fin (n + 3) → V)
+    (ha : ∀ i, a i ∈ A i) (hb : ∀ i, b i ∈ A i)
+    (cross : ∀ i, G.Adj (b i) (a (i + 1)))
+    (reachable : ∀ i, G.Reachable (a i) (b i))
+    (short : ∀ i, G.dist (a i) (b i) ≤ 2) :
+    ∃ v, ∃ c : G.Walk v v, c.IsCycle ∧
+      c.length ≤ (n + 3) + ∑ i, G.dist (a i) (b i)
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Lemma~\ref{lemm:2-bag-facts}.}
+The three conjuncts are the three numbered assertions of the lemma.
+\lstinline|PartialSequence| is a bounded prefix of a contraction sequence;
+\lstinline|blackTwoBags G P u| is the set of two-vertex bags of black
+neighbors of the singleton bag containing \lstinline|u|.
+\begin{lstlisting}
+theorem two_bag_facts (G : SimpleGraph V)
+    {d s : ℕ} (hd : 3 ≤ d)
+    (hg : 8 < G.egirth) (hreg : Regular G S d)
+    {P : Partition S}
+    (hseq : PartialSequence (.ofGraph G) (2 * d - 2) s P)
+    (small : BagsAtMostTwo P) :
+    (∀ A ∈ P.parts, A.card = 2 →
+      redDegree (.ofGraph G) P A = 2 * d - 2) ∧
+    (∀ A ∈ P.parts, A.card = 2 →
+      ∀ u ∈ A, ∀ v ∈ A, G.edist u v ≤ 2) ∧
+    (∀ u, {u} ∈ P.parts →
+      totalDegree (.ofGraph G) P {u} =
+        d - (blackTwoBags G P u).card)
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Lemma~\ref{lemm:no-big-bags}.}
+\lstinline|Merge P Q| means that \lstinline|Q| is obtained from
+\lstinline|P| by merging two bags. The conclusion says that a merge
+respecting the width bound cannot create the first bag of size greater
+than two.
+\begin{lstlisting}
+theorem no_big_bags [Fintype V] (G : SimpleGraph V) {s : ℕ}
+    (hg : 9 < G.egirth) (hreg : Regular G univ 3)
+    {P Q : Partition (univ : Finset V)}
+    (hseq : PartialSequence (.ofGraph G) 4 s P)
+    (hsmall : BagsAtMostTwo P) (hm : Merge P Q)
+    (hbound : Bounded (.ofGraph G) 4 s Q) : BagsAtMostTwo Q
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Theorem~\ref{thm:girth-general}.}
+\begin{lstlisting}
+theorem girth_general [Fintype V] [Nonempty V]
+    (G : SimpleGraph V) {d : ℕ}
+    (hd : 3 < d) (hg : 8 < G.egirth)
+    (hreg : Regular G univ d) :
+    2 * d - 2 < twinWidth (.ofGraph G) univ
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Theorem~\ref{thm:lift}.}
+The type \lstinline|TowerVertex V n| is obtained from \lstinline|V|
+by taking the product with \lstinline|Bool| a total of \lstinline|n|
+times. Thus the witness is a finite graph.
+\begin{lstlisting}
+theorem regular_girth_exists_int {d : ℕ} (hd : 3 ≤ d) (g : ℤ) :
+    ∃ n, ∃ G : SimpleGraph (TowerVertex (Fin (d+1)) n),
+      G.Connected ∧ Regular G univ d ∧ g ≤ (G.girth : ℤ) ∧
+        sparseTwinWidth (.ofGraph G) univ ≤ 2*d-1
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Definition 7.}
+The structure records the sequence of lifts. The operation
+\lstinline|girthLift| is the signed double cover with the chosen edge
+replaced by the two vertical edges, as in the definition in the main
+text. A \lstinline|Signing| assigns the same Boolean value to either
+orientation of an edge. In \lstinline|s(x n,y n)|, the notation
+\lstinline|s(a,b)| denotes an unordered pair.
+The initial regularity, connectivity, and width assumptions are supplied
+explicitly in the subsequent theorems, rather than stored in the structure.
+\begin{lstlisting}
+def TowerVertex (V : Type u) : ℕ → Type u
+  | 0 => V
+  | n+1 => TowerVertex V n × Bool
+
+structure TWNGE (V : Type u) [DecidableEq V] where
+  graph : (n : ℕ) → SimpleGraph (TowerVertex V n)
+  x : (n : ℕ) → TowerVertex V n
+  y : (n : ℕ) → TowerVertex V n
+  signing : (n : ℕ) → Signing (TowerVertex V n)
+  shortest : ∀ n, ∃ (a : TowerVertex V n)
+    (p : (graph n).Walk a a),
+    p.IsCycle ∧ s(x n,y n) ∈ p.edges ∧
+      p.length = (graph n).girth
+  step : ∀ n,
+    graph (n+1) = girthLift (graph n) (x n) (y n) (signing n)
+\end{lstlisting}
+The preservation of connectivity and regularity stated at the end of
+Definition 7 is expressed by:
+\begin{lstlisting}
+lemma TWNGE.connected (F : TWNGE V)
+    (h0 : (F.graph 0).Connected) (n : ℕ) :
+    (F.graph n).Connected
+
+section FiniteTowers
+variable [Fintype V]
+
+lemma TWNGE.regular (F : TWNGE V) {d : ℕ}
+    (h0 : Regular (F.graph 0) univ d) (n : ℕ) :
+    Regular (F.graph n) univ d
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Lemma~\ref{lemm:lift-girth}.}
+\begin{lstlisting}
+theorem lift_girth (G₀ : SimpleGraph V) {d : ℕ} (hd : 2 ≤ d)
+    (hr : Regular G₀ univ d) (hc : G₀.Connected) :
+    ∃ F : TWNGE V, F.graph 0 = G₀ ∧
+      ∀ g : ℕ, ∃ n, g ≤ (F.graph n).girth
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Lemma~\ref{lemm:lift-stww}.}
+\begin{lstlisting}
+theorem TWNGE.sparseTwinWidth_le (F : TWNGE V)
+    {d : ℕ} (hd : 2 ≤ d)
+    (hreg : Regular (F.graph 0) univ d)
+    (hconn : (F.graph 0).Connected)
+    (hwidth : sparseTwinWidth (.ofGraph (F.graph 0)) univ ≤ 2*d-1)
+    (n : ℕ) :
+    sparseTwinWidth (.ofGraph (F.graph n)) univ ≤ 2*d-1
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Corollary~\ref{cor:min-cubic}.}
+The minimum assertion combines a universal lower bound with an attaining
+graph. The second declaration gives equality of both widths at each
+stage of a cubic TWNGE with the required girth.
+\begin{lstlisting}
+theorem min_cubic (g : ℕ) (hg : 10 ≤ g) :
+    (∀ (V : Type) [DecidableEq V] [Fintype V] (G : SimpleGraph V),
+      G.Connected → Regular G univ 3 → g ≤ G.girth →
+        5 ≤ twinWidth (.ofGraph G) univ) ∧
+    (∃ n, ∃ G : SimpleGraph (TowerVertex (Fin 4) n),
+      G.Connected ∧ Regular G univ 3 ∧ g ≤ G.girth ∧
+        twinWidth (.ofGraph G) univ = 5 ∧
+          sparseTwinWidth (.ofGraph G) univ = 5)
+
+theorem TWNGE.cubic_width_eq (F : TWNGE V)
+    (hreg : Regular (F.graph 0) univ 3)
+    (hconn : (F.graph 0).Connected)
+    (hwidth : sparseTwinWidth (.ofGraph (F.graph 0)) univ ≤ 5)
+    (n : ℕ) (hg : 10 ≤ (F.graph n).girth) :
+    twinWidth (.ofGraph (F.graph n)) univ = 5 ∧
+      sparseTwinWidth (.ofGraph (F.graph n)) univ = 5
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Corollary~\ref{cor:min-general}.}
+\begin{lstlisting}
+theorem min_general (d g : ℕ) (hd : 4 ≤ d) (hg : 9 ≤ g) :
+    (∀ (V : Type) [DecidableEq V] [Fintype V] (G : SimpleGraph V),
+      G.Connected → Regular G univ d → g ≤ G.girth →
+        2 * d - 1 ≤ twinWidth (.ofGraph G) univ) ∧
+    (∃ n, ∃ G : SimpleGraph (TowerVertex (Fin (d + 1)) n),
+      G.Connected ∧ Regular G univ d ∧ g ≤ G.girth ∧
+        twinWidth (.ofGraph G) univ = 2 * d - 1 ∧
+          sparseTwinWidth (.ofGraph G) univ = 2 * d - 1)
+
+theorem TWNGE.regular_width_eq (F : TWNGE V)
+    {d : ℕ} (hd : 4 ≤ d)
+    (hreg : Regular (F.graph 0) univ d)
+    (hconn : (F.graph 0).Connected)
+    (hwidth : sparseTwinWidth (.ofGraph (F.graph 0)) univ ≤ 2 * d - 1)
+    (n : ℕ) (hg : 9 ≤ (F.graph n).girth) :
+    twinWidth (.ofGraph (F.graph n)) univ = 2 * d - 1 ∧
+      sparseTwinWidth (.ofGraph (F.graph n)) univ = 2 * d - 1
+
+end FiniteTowers
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Lemma~\ref{lemm:induced-monotone}.}
+An induced subtrigraph is represented by restricting the vertex set from
+\lstinline|S| to \lstinline|U|.
+\begin{lstlisting}
+theorem induced_monotone (T : Trigraph V) (hUS : U ⊆ S) :
+    twinWidth T U ≤ twinWidth T S ∧
+      sparseTwinWidth T U ≤ sparseTwinWidth T S
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Lemma~\ref{lemm:exchange}.}
+\lstinline|Continuation T w s P| is a contraction sequence starting at
+the current partition \lstinline|P|. The predicates \lstinline|Twins|
+and \lstinline|RedLeaf| are the two alternatives in the lemma, evaluated
+in the current quotient. The conclusion supplies the required next
+partition and a continuation with the same bounds; the original prefix
+can therefore be retained.
+\begin{lstlisting}
+theorem exchange (T : Trigraph V) {P : Partition S}
+    {A B : Finset V} {w s : ℕ}
+    (h : Continuation T w s P)
+    (hA : A ∈ P.parts) (hB : B ∈ P.parts) (hAB : A ≠ B)
+    (hcases : Twins ((partitionExpansion P).quotient T) P.parts A B ∨
+      RedLeaf ((partitionExpansion P).quotient T) P.parts A B) :
+    ∃ Q : Partition S,
+      Q.parts = insert (A ∪ B) (P.parts \ {A, B}) ∧
+      Bounded T w s P ∧ Continuation T w s Q
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Proposition~\ref{prop:sparse-bounds}.}
+\begin{lstlisting}
+theorem sparse_bounds (G : SimpleGraph V) {d : ℕ}
+    (hd : 3 ≤ d) (hdeg : MaxDegree G S d) :
+    sparseTwinWidth (.ofGraph G) S ≤
+      max (twinWidth (.ofGraph G) S + 1) ((d - 1)^2) ∧
+    sparseTwinWidth (.ofGraph G) S ≤
+      max (twinWidth (.ofGraph G) S) ((d - 1)^2 + 1)
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Corollary~\ref{cor:cubic-sparse}.}
+\begin{lstlisting}
+theorem cubic_sparse_of_twinWidth (G : SimpleGraph V)
+    (hdeg : MaxDegree G S 3)
+    (hw : 5 ≤ twinWidth (.ofGraph G) S) :
+    sparseTwinWidth (.ofGraph G) S = twinWidth (.ofGraph G) S
+
+theorem cubic_sparse_of_sparseTwinWidth (G : SimpleGraph V)
+    (hdeg : MaxDegree G S 3)
+    (hw : 6 ≤ sparseTwinWidth (.ofGraph G) S) :
+    sparseTwinWidth (.ofGraph G) S = twinWidth (.ofGraph G) S
+\end{lstlisting}
+\end{minipage}
+\par\medskip
+\noindent\begin{minipage}{\linewidth}
+\paragraph*{Corollary 16.}
+Minimum order is taken among all finite subcubic graphs with the specified
+twin-width threshold. The supporting theorem proves the claim for every
+threshold at least six; the numbered export specializes it to six.
+\begin{lstlisting}
+def SubcubicOrderMinimal (S : Finset V) (k : ℕ) : Prop :=
+  ∀ (W : Type u) [DecidableEq W] (H : SimpleGraph W) (U : Finset W),
+    U.card < S.card → MaxDegree H U 3 → twinWidth (.ofGraph H) U < k
+
+theorem minimum_subcubic_cubic_girth [Fintype V]
+    (G : SimpleGraph V) {k : ℕ}
+    (hdeg : MaxDegree G univ 3) (hk : 6 ≤ k)
+    (hw : k ≤ twinWidth (.ofGraph G) univ)
+    (hmin : SubcubicOrderMinimal (univ : Finset V) k) :
+    5 ≤ G.egirth ∧ Regular G univ 3
+
+end Paper
+\end{lstlisting}
+\end{minipage}
+\par
+\endgroup
